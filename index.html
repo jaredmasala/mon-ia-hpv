@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🟦 Dépistage CCU - Primauté HPV | ISTA Kolwezi</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --medical-blue: #007bff;
+            --medical-light-blue: #e3f2fd;
+            --medical-green: #28a745;
+            --medical-yellow: #ffc107;
+            --medical-orange: #fd7e14;
+            --medical-red: #dc3545;
+            --medical-gray: #f8f9fa;
+            --medical-dark-gray: #6c757d;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .hospital-header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+        }
+        
+        .header-logo {
+            font-size: 2.5rem;
+            margin-right: 15px;
+        }
+        
+        .section-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--medical-blue);
+            transition: transform 0.3s ease;
+        }
+        
+        .section-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .section-card.hpv-section {
+            border-left-color: #007bff;
+            background-color: #e8f4fd;
+        }
+        
+        .section-card.clinical-section {
+            border-left-color: #28a745;
+            background-color: #f0f9f0;
+        }
+        
+        .section-card.social-section {
+            border-left-color: #fd7e14;
+            background-color: #fff4e6;
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+        
+        .required::after {
+            content: " *";
+            color: var(--medical-red);
+        }
+        
+        .btn-primary-medical {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border: none;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary-medical:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 123, 255, 0.25);
+        }
+        
+        .risk-card {
+            border-radius: 15px;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .risk-no-risk {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        }
+        
+        .risk-low {
+            background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+        }
+        
+        .risk-medium {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+        
+        .risk-high {
+            background: linear-gradient(135deg, #fd7e14 0%, #dc3545 100%);
+        }
+        
+        .risk-very-high {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+        
+        .risk-level {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .risk-score {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+        
+        .recommendation-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .recommendation-card.warning {
+            border-left-color: #ffc107;
+        }
+        
+        .recommendation-card.urgent {
+            border-left-color: #dc3545;
+        }
+        
+        .cluster-chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none;
+        }
+        
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .primauté-badge {
+            background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        
+        .regime-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        
+        .regime-a {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .regime-b {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            text-align: center;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hospital-header {
+                padding: 1.5rem 0;
+            }
+            
+            .risk-score {
+                font-size: 2.5rem;
+            }
+            
+            .risk-level {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- En-tête -->
+    <header class="hospital-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 fw-bold">
+                        <i class="fas fa-dna header-logo"></i>
+                        Système de Dépistage CCU - Primauté HPV
+                    </h1>
+                    <p class="lead mb-0">
+                        ISTA Kolwezi | Recherche Médicale - Modèle Expert FCM avec Primauté Virologique
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="primauté-badge">
+                        <i class="fas fa-star-of-life me-2"></i>
+                        Primauté Virologique HPV
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <div class="container">
+        <div class="row">
+            <!-- Colonne gauche : Formulaire -->
+            <div class="col-lg-6">
+                <div class="section-card">
+                    <div class="section-title">
+                        <i class="fas fa-user-plus text-primary"></i>
+                        Données de la Patiente
+                    </div>
+                    
+                    <form id="patientForm">
+                        <!-- Section HPV - Niveau 1 (Primauté) -->
+                        <div class="section-card hpv-section mb-3">
+                            <div class="section-title">
+                                <i class="fas fa-virus text-primary"></i>
+                                Données Virologiques HPV (Niveau 1 - 70%)
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label required">
+                                    <i class="fas fa-vial me-1"></i>
+                                    Test HPV
+                                </label>
+                                <select class="form-control" id="test_hpv" name="test_hpv" required>
+                                    <option value="non">Négatif</option>
+                                    <option value="oui">Positif</option>
+                                </select>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle"></i>
+                                    Règle d'Or: Le CCU est causé à >99% par le HPV
+                                </small>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-dna me-1"></i>
+                                            Génotype HPV
+                                        </label>
+                                        <select class="form-control" id="genotype_hpv" name="genotype_hpv">
+                                            <option value="0">0 (Négatif)</option>
+                                            <option value="16">16 (Très haut risque)</option>
+                                            <option value="18">18 (Très haut risque)</option>
+                                            <option value="31">31 (Haut risque)</option>
+                                            <option value="33">33 (Haut risque)</option>
+                                            <option value="45">45 (Haut risque)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-chart-line me-1"></i>
+                                            Charge virale HPV
+                                        </label>
+                                        <input type="number" class="form-control" id="charge_virale_hpv" name="charge_virale_hpv" value="0" min="0">
+                                        <small class="form-text text-muted">Copies/mL</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Section Antécédents Cliniques - Niveau 2 -->
+                        <div class="section-card clinical-section mb-3">
+                            <div class="section-title">
+                                <i class="fas fa-stethoscope text-success"></i>
+                                Antécédents Cliniques (Niveau 2 - 20%)
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-plus-circle me-1"></i>
+                                    Test VIH
+                                </label>
+                                <select class="form-control" id="test_vih" name="test_vih">
+                                    <option value="non">Négatif</option>
+                                    <option value="oui">Positif</option>
+                                </select>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-history me-1"></i>
+                                            Antécédents MST
+                                        </label>
+                                        <select class="form-control" id="antecedents_mst" name="antecedents_mst">
+                                            <option value="non">Non</option>
+                                            <option value="oui">Oui</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-bacteria me-1"></i>
+                                            Nombre de MST diagnostiquées
+                                        </label>
+                                        <input type="number" class="form-control" id="nombre_mst" name="nombre_mst" value="0" min="0" max="20">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-virus me-1"></i>
+                                    Test herpès génital
+                                </label>
+                                <select class="form-control" id="test_herpes" name="test_herpes">
+                                    <option value="non">Négatif</option>
+                                    <option value="oui">Positif</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Section Profil Social - Niveau 3 -->
+                        <div class="section-card social-section">
+                            <div class="section-title">
+                                <i class="fas fa-users text-warning"></i>
+                                Profil Social (Niveau 3 - 10%)
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label required">
+                                            <i class="fas fa-birthday-cake me-1"></i>
+                                            Âge
+                                        </label>
+                                        <input type="number" class="form-control" id="age" name="age" required min="15" max="80" value="30">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-user-friends me-1"></i>
+                                            Nombre de partenaires
+                                        </label>
+                                        <input type="number" class="form-control" id="nombre_partenaires" name="nombre_partenaires" value="0" min="0" max="50">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            Âge premier rapport
+                                        </label>
+                                        <input type="number" class="form-control" id="age_premier_rapport" name="age_premier_rapport" value="18" min="10" max="40">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-pills me-1"></i>
+                                            Contraceptifs hormonaux
+                                        </label>
+                                        <select class="form-control" id="contraceptifs_hormonaux" name="contraceptifs_hormonaux">
+                                            <option value="non">Non</option>
+                                            <option value="oui">Oui</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-baby me-1"></i>
+                                            Nombre de grossesses
+                                        </label>
+                                        <input type="number" class="form-control" id="nombre_grossesses" name="nombre_grossesses" value="0" min="0" max="20">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-hospital me-1"></i>
+                                            Nombre de IVG
+                                        </label>
+                                        <input type="number" class="form-control" id="nombre_ivg" name="nombre_ivg" value="0" min="0" max="10">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Boutons d'action -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button type="button" class="btn btn-outline-secondary me-md-2" onclick="loadSample('negatif')">
+                                <i class="fas fa-virus-slash me-2"></i>
+                                Exemple HPV Négatif
+                            </button>
+                            <button type="button" class="btn btn-outline-danger me-md-2" onclick="loadSample('positif')">
+                                <i class="fas fa-virus me-2"></i>
+                                Exemple HPV Positif
+                            </button>
+                            <button type="submit" class="btn btn-primary-medical">
+                                <i class="fas fa-search me-2"></i>
+                                DÉPISTER
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Colonne droite : Résultats -->
+            <div class="col-lg-6">
+                <!-- Affichage régime -->
+                <div id="regimeDisplay" class="mb-4" style="display: none;">
+                    <!-- Le contenu sera généré dynamiquement -->
+                </div>
+                
+                <!-- Carte de risque -->
+                <div id="riskCard" style="display: none;">
+                    <!-- Le contenu sera généré dynamiquement -->
+                </div>
+                
+                <!-- Graphique des clusters -->
+                <div class="cluster-chart-container mb-4">
+                    <div class="section-title">
+                        <i class="fas fa-chart-pie text-primary"></i>
+                        Distribution des Clusters FCM
+                    </div>
+                    <canvas id="clusterChart" height="250"></canvas>
+                    <div id="clusterInfo" class="mt-3 text-center text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Le graphique montre les probabilités d'appartenance aux clusters
+                    </div>
+                </div>
+                
+                <!-- Recommandations -->
+                <div id="recommendationsSection" style="display: none;">
+                    <div class="section-title">
+                        <i class="fas fa-clipboard-list text-success"></i>
+                        Recommandations Cliniques
+                    </div>
+                    <div id="recommendationsList">
+                        <!-- Les recommandations seront ajoutées dynamiquement -->
+                    </div>
+                </div>
+                
+                <!-- Résultats détaillés -->
+                <div id="detailedResults" class="section-card" style="display: none;">
+                    <div class="section-title">
+                        <i class="fas fa-chart-bar text-info"></i>
+                        Analyse Détaillée
+                    </div>
+                    <div id="detailedContent">
+                        <!-- Le contenu détaillé sera ajouté dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overlay de chargement -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <h4 class="mt-3 text-primary">Analyse en cours...</h4>
+            <p class="text-muted">Application de la primauté virologique HPV</p>
+        </div>
+    </div>
+    
+    <!-- Pied de page -->
+    <footer class="footer">
+        <div class="container">
+            <p class="mb-2">
+                <strong>Système de Dépistage CCU avec Primauté HPV v4.0</strong>
+            </p>
+            <p class="mb-1">
+                ISTA Kolwezi - République Démocratique du Congo
+            </p>
+            <p class="mb-1">
+                Auteurs: LUMANJI MBUNGA Luc & MASALA VAGULUA Jared
+            </p>
+            <p class="small mt-3">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Ce système est un outil d'aide à la décision. Les résultats doivent être validés par un professionnel de santé qualifié.
+            </p>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Variables globales
+        let clusterChart = null;
+        const PHP_ENDPOINT = 'process.php';
+        
+        // Gestionnaire de soumission du formulaire
+        document.getElementById('patientForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Afficher le loading
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            // Collecter les données du formulaire
+            const formData = {
+                age: document.getElementById('age').value,
+                test_hpv: document.getElementById('test_hpv').value,
+                genotype_hpv: document.getElementById('genotype_hpv').value,
+                charge_virale_hpv: document.getElementById('charge_virale_hpv').value,
+                test_vih: document.getElementById('test_vih').value,
+                antecedents_mst: document.getElementById('antecedents_mst').value,
+                nombre_mst: document.getElementById('nombre_mst').value,
+                test_herpes: document.getElementById('test_herpes').value,
+                nombre_partenaires: document.getElementById('nombre_partenaires').value,
+                age_premier_rapport: document.getElementById('age_premier_rapport').value,
+                contraceptifs_hormonaux: document.getElementById('contraceptifs_hormonaux').value,
+                nombre_grossesses: document.getElementById('nombre_grossesses').value,
+                nombre_ivg: document.getElementById('nombre_ivg').value
+            };
+            
+            try {
+                // Envoyer les données au serveur PHP
+                const response = await fetch(PHP_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                // Cacher le loading
+                document.getElementById('loadingOverlay').style.display = 'none';
+                
+                if (result.success) {
+                    // Afficher les résultats
+                    displayResults(result.data);
+                } else {
+                    // Afficher l'erreur
+                    showError(result.error || 'Une erreur est survenue');
+                }
+                
+            } catch (error) {
+                // Cacher le loading
+                document.getElementById('loadingOverlay').style.display = 'none';
+                
+                // Afficher l'erreur
+                showError('Erreur de connexion au serveur: ' + error.message);
+            }
+        });
+        
+        // Fonction pour afficher les résultats
+        function displayResults(data) {
+            // Afficher le régime
+            displayRegime(data.regime, data.hpv);
+            
+            // Afficher la carte de risque
+            displayRiskCard(data);
+            
+            // Afficher le graphique des clusters
+            displayClusterChart(data.fcm);
+            
+            // Afficher les recommandations
+            displayRecommendations(data.recommendations);
+            
+            // Afficher les résultats détaillés
+            displayDetailedResults(data);
+        }
+        
+        // Afficher le régime HPV
+        function displayRegime(regime, hpvData) {
+            const regimeDisplay = document.getElementById('regimeDisplay');
+            
+            let regimeHTML = '';
+            
+            if (regime === 'A') {
+                regimeHTML = `
+                    <div class="regime-badge regime-a">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        RÉGIME A: HPV NÉGATIF
+                    </div>
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-stethoscope me-2"></i>Analyse de VULNÉRABILITÉ</h5>
+                        <p class="mb-0">
+                            Pas de virus HPV détecté. Le système évalue la fragilité du terrain 
+                            (comportement, immunité, antécédents).
+                            <strong>Limitation: Risque Moyen maximum.</strong>
+                        </p>
+                    </div>
+                `;
+            } else {
+                regimeHTML = `
+                    <div class="regime-badge regime-b">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        RÉGIME B: HPV POSITIF
+                    </div>
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-virus me-2"></i>Analyse de DANGEROSITÉ</h5>
+                        <p class="mb-0">
+                            Virus HPV présent. Le système évalue le risque de transformation cellulaire 
+                            vers le cancer. <strong>Toutes les classes de risque sont disponibles.</strong>
+                        </p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-dna me-1"></i> Génotype HPV</h6>
+                                    <p class="mb-0">
+                                        <strong>${hpvData.genotype}</strong> 
+                                        <span class="badge bg-${getHPVGenotypeColor(hpvData.genotype_risk)}">
+                                            ${hpvData.genotype_risk.replace('_', ' ').toUpperCase()}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-chart-line me-1"></i> Charge virale</h6>
+                                    <p class="mb-0">
+                                        <strong>${hpvData.viral_load}</strong> copies/mL
+                                        <span class="badge bg-${getViralLoadColor(hpvData.viral_load_level)}">
+                                            ${hpvData.viral_load_level}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            regimeDisplay.innerHTML = regimeHTML;
+            regimeDisplay.style.display = 'block';
+        }
+        
+        // Afficher la carte de risque
+        function displayRiskCard(data) {
+            const riskCard = document.getElementById('riskCard');
+            const riskClass = getRiskClass(data.risk_level);
+            
+            const riskHTML = `
+                <div class="risk-card ${riskClass.cssClass}">
+                    <div class="regime-badge ${data.regime === 'A' ? 'regime-a' : 'regime-b'} mb-3">
+                        <i class="fas fa-${data.regime === 'A' ? 'shield-alt' : 'exclamation-triangle'} me-2"></i>
+                        ${data.regime === 'A' ? 'HPV NÉGATIF' : 'HPV POSITIF'}
+                    </div>
+                    <div class="risk-level">${data.risk_level}</div>
+                    <div class="risk-score">${data.final_score.toFixed(2)}/10</div>
+                    <div class="mb-3">
+                        <span class="badge bg-light text-dark p-2">
+                            <i class="fas fa-chart-line me-1"></i>
+                            Score expert: ${data.expert_score.toFixed(2)}/10
+                        </span>
+                        <span class="badge bg-light text-dark p-2 ms-2">
+                            <i class="fas fa-project-diagram me-1"></i>
+                            Cluster: ${data.fcm.cluster_name}
+                        </span>
+                    </div>
+                    <p class="mb-0">
+                        <i class="fas fa-quote-left me-1"></i>
+                        ${data.analysis.interpretation}
+                    </p>
+                </div>
+            `;
+            
+            riskCard.innerHTML = riskHTML;
+            riskCard.style.display = 'block';
+        }
+        
+        // Afficher le graphique des clusters
+        function displayClusterChart(fcmData) {
+            const ctx = document.getElementById('clusterChart').getContext('2d');
+            
+            // Détruire le graphique existant
+            if (clusterChart) {
+                clusterChart.destroy();
+            }
+            
+            // Préparer les données
+            const labels = [];
+            const data = [];
+            const colors = [];
+            
+            for (let i = 0; i < fcmData.membership_distribution.length; i++) {
+                labels.push(`Cluster ${i}`);
+                data.push(fcmData.membership_distribution[i] * 100);
+                
+                // Couleur basée sur le cluster sélectionné
+                if (i === fcmData.cluster_id) {
+                    colors.push('#007bff'); // Bleu pour le cluster sélectionné
+                } else {
+                    colors.push('#e9ecef'); // Gris pour les autres
+                }
+            }
+            
+            // Créer le graphique
+            clusterChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Probabilité d\'appartenance (%)',
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: '#495057',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw.toFixed(1)}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Probabilité (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Clusters FCM'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Mettre à jour les informations du cluster
+            const clusterInfo = document.getElementById('clusterInfo');
+            clusterInfo.innerHTML = `
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>${fcmData.cluster_name}</strong> sélectionné avec 
+                    <strong>${(fcmData.membership_confidence * 100).toFixed(1)}%</strong> de confiance.
+                    Contribution au score final: 40%
+                </div>
+            `;
+        }
+        
+        // Afficher les recommandations
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendationsList');
+            container.innerHTML = '';
+            
+            recommendations.forEach((rec, index) => {
+                // Déterminer la classe CSS basée sur le contenu
+                let cardClass = 'recommendation-card';
+                if (rec.includes('URGENCE') || rec.includes('🔴')) {
+                    cardClass += ' urgent';
+                } else if (rec.includes('⚠️') || rec.includes('surveillance')) {
+                    cardClass += ' warning';
+                }
+                
+                // Nettoyer le texte des emojis
+                const cleanText = rec.replace(/[✓⚠️🔴]/g, '').trim();
+                
+                const recHTML = `
+                    <div class="${cardClass}">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0 me-3">
+                                ${getRecommendationIcon(rec)}
+                            </div>
+                            <div class="flex-grow-1">
+                                ${cleanText}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML += recHTML;
+            });
+            
+            document.getElementById('recommendationsSection').style.display = 'block';
+        }
+        
+        // Afficher les résultats détaillés
+        function displayDetailedResults(data) {
+            const container = document.getElementById('detailedContent');
+            
+            const detailedHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-chart-pie me-1 text-primary"></i>
+                                    Répartition des Scores
+                                </h6>
+                                <canvas id="scoreChart" height="150"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-percentage me-1 text-success"></i>
+                                    Hiérarchie HPV (70-20-10)
+                                </h6>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Niveau 1: HPV
+                                        <span class="badge bg-primary rounded-pill">
+                                            ${data.analysis.scores_breakdown.niveau_1_hpv.toFixed(2)}
+                                        </span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Niveau 2: Aggravants
+                                        <span class="badge bg-success rounded-pill">
+                                            ${data.analysis.scores_breakdown.niveau_2_aggravants.toFixed(2)}
+                                        </span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Niveau 3: Vulnérabilité
+                                        <span class="badge bg-warning rounded-pill">
+                                            ${data.analysis.scores_breakdown.niveau_3_vulnerabilite.toFixed(2)}
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-file-medical me-1 text-info"></i>
+                            Informations Complémentaires
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Date de l'analyse:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
+                                <p><strong>Score expert:</strong> ${data.expert_score.toFixed(2)}/10</p>
+                                <p><strong>Score final (hybride):</strong> ${data.final_score.toFixed(2)}/10</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Cluster FCM:</strong> ${data.fcm.cluster_name}</p>
+                                <p><strong>Confidence:</strong> ${(data.fcm.membership_confidence * 100).toFixed(1)}%</p>
+                                <p><strong>Fusion:</strong> Expert 60% + FCM 40%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = detailedHTML;
+            document.getElementById('detailedResults').style.display = 'block';
+            
+            // Créer le graphique des scores
+            createScoreChart(data);
+        }
+        
+        // Créer le graphique des scores
+        function createScoreChart(data) {
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['HPV (70%)', 'Aggravants (20%)', 'Vulnérabilité (10%)'],
+                    datasets: [{
+                        data: [
+                            data.analysis.scores_breakdown.niveau_1_hpv,
+                            data.analysis.scores_breakdown.niveau_2_aggravants,
+                            data.analysis.scores_breakdown.niveau_3_vulnerabilite
+                        ],
+                        backgroundColor: ['#007bff', '#28a745', '#ffc107'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Fonctions utilitaires
+        function getRiskClass(riskLevel) {
+            const riskClasses = {
+                'Pas de risque': { cssClass: 'risk-no-risk', icon: 'fa-check-circle' },
+                'Faible risque': { cssClass: 'risk-low', icon: 'fa-info-circle' },
+                'Risque moyen': { cssClass: 'risk-medium', icon: 'fa-exclamation-triangle' },
+                'Haut risque': { cssClass: 'risk-high', icon: 'fa-exclamation-circle' },
+                'Très haut risque': { cssClass: 'risk-very-high', icon: 'fa-radiation' }
+            };
+            
+            return riskClasses[riskLevel] || { cssClass: 'risk-medium', icon: 'fa-question-circle' };
+        }
+        
+        function getHPVGenotypeColor(risk) {
+            switch(risk) {
+                case 'très_haut_risque': return 'danger';
+                case 'haut_risque': return 'warning';
+                case 'risque_intermédiaire': return 'info';
+                default: return 'secondary';
+            }
+        }
+        
+        function getViralLoadColor(level) {
+            switch(level) {
+                case 'TRES_ELEVEE': return 'danger';
+                case 'ELEVEE': return 'warning';
+                case 'MODEREE': return 'info';
+                default: return 'success';
+            }
+        }
+        
+        function getRecommendationIcon(text) {
+            if (text.includes('✓')) return '<i class="fas fa-check-circle text-success fa-lg"></i>';
+            if (text.includes('⚠️')) return '<i class="fas fa-exclamation-triangle text-warning fa-lg"></i>';
+            if (text.includes('🔴')) return '<i class="fas fa-exclamation-circle text-danger fa-lg"></i>';
+            return '<i class="fas fa-circle text-primary fa-sm"></i>';
+        }
+        
+        // Charger des exemples
+        function loadSample(type) {
+            if (type === 'negatif') {
+                document.getElementById('test_hpv').value = 'non';
+                document.getElementById('genotype_hpv').value = '0';
+                document.getElementById('charge_virale_hpv').value = '0';
+                document.getElementById('age').value = '22';
+                document.getElementById('nombre_partenaires').value = '6';
+                document.getElementById('age_premier_rapport').value = '15';
+                document.getElementById('test_vih').value = 'non';
+                document.getElementById('antecedents_mst').value = 'oui';
+                document.getElementById('nombre_mst').value = '2';
+            } else if (type === 'positif') {
+                document.getElementById('test_hpv').value = 'oui';
+                document.getElementById('genotype_hpv').value = '16';
+                document.getElementById('charge_virale_hpv').value = '5000';
+                document.getElementById('age').value = '28';
+                document.getElementById('nombre_partenaires').value = '2';
+                document.getElementById('test_vih').value = 'oui';
+                document.getElementById('antecedents_mst').value = 'oui';
+                document.getElementById('nombre_mst').value = '1';
+            }
+            
+            // Mettre à jour l'affichage du régime
+            updateRegimeDisplay();
+        }
+        
+        // Mettre à jour l'affichage du régime
+        function updateRegimeDisplay() {
+            const hpvTest = document.getElementById('test_hpv').value;
+            const genotype = document.getElementById('genotype_hpv').value;
+            
+            // Activer/désactiver les champs HPV
+            const hpvFields = ['genotype_hpv', 'charge_virale_hpv'];
+            hpvFields.forEach(field => {
+                document.getElementById(field).disabled = hpvTest === 'non';
+            });
+        }
+        
+        // Afficher une erreur
+        function showError(message) {
+            // Créer une alerte Bootstrap
+            const alertHTML = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Erreur:</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            // Ajouter l'alerte en haut de la page
+            document.querySelector('.container').insertAdjacentHTML('afterbegin', alertHTML);
+        }
+        
+        // Initialiser l'interface
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mettre à jour l'affichage du régime au chargement
+            updateRegimeDisplay();
+            
+            // Écouter les changements sur le test HPV
+            document.getElementById('test_hpv').addEventListener('change', updateRegimeDisplay);
+            
+            // Afficher un message d'accueil
+            const welcomeHTML = `
+                <div class="alert alert-primary">
+                    <h5><i class="fas fa-hospital-user me-2"></i>Bienvenue au système de dépistage CCU</h5>
+                    <p class="mb-2">
+                        Ce système utilise un modèle IA combinant:
+                    </p>
+                    <ul class="mb-0">
+                        <li><strong>Primauté virologique HPV</strong> (Règle d'Or: CCU causé à >99% par le HPV)</li>
+                        <li><strong>Système expert</strong> avec hiérarchie à 3 niveaux (70% HPV, 20% aggravants, 10% vulnérabilité)</li>
+                        <li><strong>Clustering flou (FCM)</strong> pour la classification des profils patients</li>
+                    </ul>
+                </div>
+            `;
+            
+            document.querySelector('.container').insertAdjacentHTML('afterbegin', welcomeHTML);
+        });
+    </script>
+</body>
+</html>
