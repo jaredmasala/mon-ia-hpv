@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Configuration
-$API_URL = 'https://ia-depistage-hpv.onrender.com'; // URL de l'API Flask
+$API_URL = 'https://ia-depistage-hpv1.onrender.com'; // URL de l'API Flask
 $MAX_AGE = 80;
 $MIN_AGE = 15;
 
