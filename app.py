@@ -767,8 +767,9 @@ def get_model_info():
 
 if __name__ == '__main__':
     # Configuration
+    import os
     port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('DEBUG', 'True').lower() == 'true'
+    app.run(host='0.0.0.0', port=port, debug=False)
     
     print(f"🚀 Démarrage de l'API Dépistage CCU sur le port {port}")
     print(f"📊 Modèle chargé: {'✅' if model.model_loaded else '❌'}")
@@ -780,3 +781,4 @@ if __name__ == '__main__':
     print(f"   • GET  /api/model-info - Informations modèle")
     
     app.run(host='0.0.0.0', port=port, debug=debug)
+    
